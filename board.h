@@ -61,8 +61,8 @@ static unsigned long ROOK_BOUNDARIES[4] = {A_FILE,
                                            EIGHTH_RANK,
                                            H_FILE};
 
-static int QUEEN_MOVES[8] = {9, 7, 1, 8, 8, 1, 7, 9};
-static unsigned long QUEEN_BOUNDARIES[8] = {FIRST_RANK | A_FILE,
+static int ROYAL_MOVES[8] = {9, 7, 1, 8, 8, 1, 7, 9};
+static unsigned long ROYAL_BOUNDARIES[8] = {FIRST_RANK | A_FILE,
                                             FIRST_RANK | H_FILE,
                                             A_FILE,
                                             FIRST_RANK,
