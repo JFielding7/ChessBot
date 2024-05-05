@@ -5,7 +5,7 @@
 #ifndef CHESSBOT_BOARD_H
 #define CHESSBOT_BOARD_H
 
-#define START_POSITION malloc(sizeof (board_t));\
+#define START_POSITION(board) malloc(sizeof (board_t));\
 board->white_pawns   = 0b0000000000000000000000000000000000000000000000001111111100000000;\
 board->white_knights = 0b0000000000000000000000000000000000000000000000000000000001000010;\
 board->white_bishops = 0b0000000000000000000000000000000000000000000000000000000000100100;\
@@ -35,6 +35,10 @@ board->black_king    = 0b0001000000000000000000000000000000000000000000000000000
 #define SEVENTH_RANK 0b0000000011111111000000000000000000000000000000000000000000000000
 #define EIGHTH_RANK  0b1111111100000000000000000000000000000000000000000000000000000000
 
+#define BISHOP 0
+#define ROOK 1
+#define QUEEN 2
+
 static int KNIGHT_MOVES[8] = {17, 15, 10, 6, 6, 10, 15, 17};
 static unsigned long KNIGHT_BOUNDARIES[8] = {FIRST_RANK | SECOND_RANK | A_FILE,
                                              FIRST_RANK | SECOND_RANK | H_FILE,
@@ -46,10 +50,26 @@ static unsigned long KNIGHT_BOUNDARIES[8] = {FIRST_RANK | SECOND_RANK | A_FILE,
                                              SEVENTH_RANK | EIGHTH_RANK | H_FILE};
 
 static int BISHOP_MOVES[4] = {9, 7, 7, 9};
-static unsigned long BISHOP_BOUNDARIES[8] = {FIRST_RANK | A_FILE,
+static unsigned long BISHOP_BOUNDARIES[4] = {FIRST_RANK | A_FILE,
                                              FIRST_RANK | H_FILE,
                                              EIGHTH_RANK | A_FILE,
                                              EIGHTH_RANK | H_FILE};
+
+static int ROOK_MOVES[4] = {1, 8, 8, 1};
+static unsigned long ROOK_BOUNDARIES[4] = {A_FILE,
+                                           FIRST_RANK,
+                                           EIGHTH_RANK,
+                                           H_FILE};
+
+static int QUEEN_MOVES[8] = {9, 7, 1, 8, 8, 1, 7, 9};
+static unsigned long QUEEN_BOUNDARIES[8] = {FIRST_RANK | A_FILE,
+                                            FIRST_RANK | H_FILE,
+                                            A_FILE,
+                                            FIRST_RANK,
+                                            EIGHTH_RANK,
+                                            H_FILE,
+                                            EIGHTH_RANK | A_FILE,
+                                            EIGHTH_RANK | H_FILE};
 
 typedef struct board_s {
     unsigned long white_pawns;

@@ -9,8 +9,8 @@
 
 #include "board.h"
 
-void add_if_legal_advance(board_t board, location pawn, location pawns, location pieces, board_t* move_list, int* idx) {
-    if (!(pawn & pieces)) {
+void add_if_legal_advance(board_t board, location pawn, location pawns, location all_pieces, board_t* move_list, int* idx) {
+    if (!(pawn & all_pieces)) {
         board.white_pawns = pawns;
         move_list[(*idx)++] = board;
     }
@@ -60,36 +60,95 @@ void white_knight_moves(board_t* board, location white_pieces, board_t* move_lis
     }
 }
 
-void add_white_bishop_move(board_t board, location move, location bishops, board_t* move_list, int* idx) {
-    board.white_bishops = bishops | move;
-    board.black_pawns ^= move;
-    board.black_knights ^= move;
-    board.black_bishops ^= move;
-    board.black_rooks ^= move;
-    board.black_queen ^= move;
-    move_list[(*idx)++] = board;
+//void add_white_bishop_move(board_t board, location move, location bishops, board_t* move_list, int* idx) {
+//    board.white_bishops = bishops | move;
+//    board.black_pawns ^= move;
+//    board.black_knights ^= move;
+//    board.black_bishops ^= move;
+//    board.black_rooks ^= move;
+//    board.black_queen ^= move;
+//    move_list[(*idx)++] = board;
+//}
+
+//void white_bishop_moves(board_t* board, location white_pieces, location black_pieces, board_t* move_list, int* idx) {
+//    location bishops = board->white_bishops;
+//    location remaining_bishops = bishops;
+//    while (remaining_bishops) {
+//        location next_bishops = remaining_bishops & (remaining_bishops - 1);
+//        location bishop = next_bishops ^ remaining_bishops;
+//        for (int i = 0; i < 4; i++) {
+//            int delta = BISHOP_MOVES[i];
+//            location curr = bishop;
+//            location other_bishops = curr ^ bishops;
+//            while (!(curr & BISHOP_BOUNDARIES[i]) && !(curr & black_pieces)) {
+//                curr = i < 2 ? curr >> delta : curr << delta;
+//                if (curr & white_pieces) break;
+//                add_white_bishop_move(*board, curr, other_bishops, move_list, idx);
+//            }
+//        }
+//        remaining_bishops = next_bishops;
+//    }
+//}
+
+void add_white_move(board_t* board, location move, board_t* move_list, int* idx) {
+    board->black_pawns ^= move;
+    board->black_knights ^= move;
+    board->black_bishops ^= move;
+    board->black_rooks ^= move;
+    board->black_queen ^= move;
+    move_list[(*idx)++] = *board;
 }
 
-void white_bishop_moves(board_t* board, location white_pieces, location black_pieces, board_t* move_list, int* idx) {
-    location bishops = board->white_bishops;
-    location remaining_bishops = bishops;
-    while (remaining_bishops) {
-        location next_bishops = remaining_bishops & (remaining_bishops - 1);
-        location bishop = next_bishops ^ remaining_bishops;
-        for (int i = 0; i < 4; i++) {
-            int delta = BISHOP_MOVES[i];
-            location curr = bishop;
-            location other_bishops = curr ^ bishops;
-            while (!(curr & BISHOP_BOUNDARIES[i]) && !(curr & black_pieces)) {
-                curr = i < 2 ? curr >> delta : curr << delta;
-                if (curr & white_pieces) break;
-                add_white_bishop_move(*board, curr, other_bishops, move_list, idx);
+void add_white_bishop_move(board_t board, location move, location pieces, board_t* move_list, int* idx) {
+    board.white_bishops = move | pieces;
+    add_white_move(&board, move, move_list, idx);
+}
+
+void add_white_rook_move(board_t board, location move, location pieces, board_t* move_list, int* idx) {
+    board.white_rooks = move | pieces;
+    add_white_move(&board, move, move_list, idx);
+}
+
+void add_white_queen_move(board_t board, location move, location pieces, board_t* move_list, int* idx) {
+    board.white_queen = move | pieces;
+    add_white_move(&board, move, move_list, idx);
+}
+
+void line_moves(board_t* board, location pieces, location player_pieces, location opponent_pieces,
+                int directions, const int move_deltas[], const location boundaries[], board_t* move_list, int* idx,
+                void add_move(board_t, location, location, board_t*, int*)) {
+    location remaining_pieces = pieces;
+    while (remaining_pieces) {
+        location next_pieces = remaining_pieces & (remaining_pieces - 1);
+        location curr_piece = next_pieces ^ remaining_pieces;
+        for (int i = 0; i < directions; i++) {
+            int delta = move_deltas[i];
+            location move = curr_piece;
+            location other_pieces = move ^ pieces;
+            while (!(move & boundaries[i]) && !(move & opponent_pieces)) {
+                move = i < (directions >> 1) ? move >> delta : move << delta;
+                if (move & player_pieces) break;
+                add_move(*board, move, other_pieces, move_list, idx);
             }
         }
-        remaining_bishops = next_bishops;
+        remaining_pieces = next_pieces;
     }
 }
 
+void white_bishop_moves(board_t* board, location white_pieces, location black_pieces, board_t* move_list, int* idx) {
+    line_moves(board, board->white_bishops, white_pieces, black_pieces,
+               4, BISHOP_MOVES, BISHOP_BOUNDARIES, move_list, idx, &add_white_bishop_move);
+}
+
+void white_rook_moves(board_t* board, location white_pieces, location black_pieces, board_t* move_list, int* idx) {
+    line_moves(board, board->white_rooks, white_pieces, black_pieces,
+               4, ROOK_MOVES, ROOK_BOUNDARIES, move_list, idx, &add_white_rook_move);
+}
+
+void white_queen_moves(board_t* board, location white_pieces, location black_pieces, board_t* move_list, int* idx) {
+    line_moves(board, board->white_queen, white_pieces, black_pieces,
+               8, QUEEN_MOVES, QUEEN_BOUNDARIES, move_list, idx, &add_white_queen_move);
+}
 
 void legal_moves(board_t* board) {
     board_t moves_list[MAX_MOVES];
@@ -100,8 +159,15 @@ void legal_moves(board_t* board) {
     location black_pieces = board->black_pawns ^ board->black_knights ^ board->black_bishops
             ^ board->black_rooks ^ board->black_queen ^ board->black_king;
     white_pawn_moves(board, white_pieces ^ black_pieces, black_pieces, moves_list, idx_ptr);
+    printf("%d\n", idx);
     white_knight_moves(board, white_pieces, moves_list, idx_ptr);
+    printf("%d\n", idx);
     white_bishop_moves(board, white_pieces, black_pieces, moves_list, idx_ptr);
+    printf("%d\n", idx);
+    white_rook_moves(board, white_pieces, black_pieces, moves_list, idx_ptr);
+    printf("%d\n", idx);
+    white_queen_moves(board, white_pieces, black_pieces, moves_list, idx_ptr);
+    printf("%d\n", idx);
     for (int i = 0; i < idx; i++) {
         puts("");
         decode_board(&moves_list[i]);
@@ -125,9 +191,8 @@ board_t* fen_to_bitboard(const char* fen) {
     board->black_king    = 0;
     int square = 56;
     int i = 0;
-    int length = strlen(fen);
+    unsigned long length = strlen(fen);
     while (i < length) {
-        printf("%d %c\n", square, fen[i]);
         location curr = 1lu << square;
         switch (fen[i]) {
             case 'p': board->black_pawns |= curr;
@@ -187,7 +252,10 @@ void decode_board(board_t* board) {
 }
 
 int main() {
-    board_t* board = fen_to_bitboard("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R");
-    decode_board(board);
+    board_t* start = START_POSITION(start);
+//    board_t* board = fen_to_bitboard("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R");
+    board_t* board = fen_to_bitboard("rnbq1bnr/pp1ppppp/8/2p1N3/4P2k/3P4/PPP2PPP/RNBQKB1R");
+
+    legal_moves(board);
     return 0;
 }
