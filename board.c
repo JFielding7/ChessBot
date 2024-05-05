@@ -109,13 +109,65 @@ void legal_moves(board_t* board) {
     printf("%d", idx);
 }
 
-
+board_t* fen_to_bitboard(const char* fen) {
+    board_t* board = malloc(sizeof (board_t));
+    board->white_pawns   = 0;
+    board->white_knights = 0;
+    board->white_bishops = 0;
+    board->white_rooks   = 0;
+    board->white_queen   = 0;
+    board->white_king    = 0;
+    board->black_pawns   = 0;
+    board->black_knights = 0;
+    board->black_bishops = 0;
+    board->black_rooks   = 0;
+    board->black_queen   = 0;
+    board->black_king    = 0;
+    int square = 56;
+    int i = 0;
+    int length = strlen(fen);
+    while (i < length) {
+        printf("%d %c\n", square, fen[i]);
+        location curr = 1lu << square;
+        switch (fen[i]) {
+            case 'p': board->black_pawns |= curr;
+                break;
+            case 'n': board->black_knights |= curr;
+                break;
+            case 'b': board->black_bishops |= curr;
+                break;
+            case 'r': board->black_rooks |= curr;
+                break;
+            case 'q': board->black_queen |= curr;
+                break;
+            case 'k': board->black_king |= curr;
+                break;
+            case 'P': board->white_pawns |= curr;
+                break;
+            case 'N': board->white_knights |= curr;
+                break;
+            case 'B': board->white_bishops |= curr;
+                break;
+            case 'R': board->white_rooks |= curr;
+                break;
+            case 'Q': board->white_queen |= curr;
+                break;
+            case 'K': board->white_king |= curr;
+                break;
+            case '/': square -= 17;
+                break;
+            default: square += fen[i] - 49;
+        }
+        square++;
+        i++;
+    }
+    return board;
+}
 
 void decode_board(board_t* board) {
     for (int i = 7; i > -1; i--) {
         for (int j = 0; j < 8; j++) {
             location curr = 1lu << ((i << 3) + j);
-//            printf("%d", (i << 3) + j);
             if (board->white_pawns & curr) printf("♟ ");
             else if (board->white_knights & curr) printf("♞ ");
             else if (board->white_bishops & curr) printf("♝ ");
@@ -135,7 +187,7 @@ void decode_board(board_t* board) {
 }
 
 int main() {
-    board_t* board = START_POSITION;
-    legal_moves(board);
+    board_t* board = fen_to_bitboard("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R");
+    decode_board(board);
     return 0;
 }
