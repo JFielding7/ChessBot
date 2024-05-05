@@ -35,7 +35,7 @@ board->black_king    = 0b0001000000000000000000000000000000000000000000000000000
 #define SEVENTH_RANK 0b0000000011111111000000000000000000000000000000000000000000000000
 #define EIGHTH_RANK  0b1111111100000000000000000000000000000000000000000000000000000000
 
-static int KNIGHT_MOVES[8] = {-17, -15, -10, -6, 6, 10, 15, 17};
+static int KNIGHT_MOVES[8] = {17, 15, 10, 6, 6, 10, 15, 17};
 static unsigned long KNIGHT_BOUNDARIES[8] = {FIRST_RANK | SECOND_RANK | A_FILE,
                                              FIRST_RANK | SECOND_RANK | H_FILE,
                                              FIRST_RANK | A_FILE | B_FILE,
@@ -44,6 +44,12 @@ static unsigned long KNIGHT_BOUNDARIES[8] = {FIRST_RANK | SECOND_RANK | A_FILE,
                                              EIGHTH_RANK | G_FILE | H_FILE,
                                              SEVENTH_RANK | EIGHTH_RANK | A_FILE,
                                              SEVENTH_RANK | EIGHTH_RANK | H_FILE};
+
+static int BISHOP_MOVES[4] = {9, 7, 7, 9};
+static unsigned long BISHOP_BOUNDARIES[8] = {FIRST_RANK | A_FILE,
+                                             FIRST_RANK | H_FILE,
+                                             EIGHTH_RANK | A_FILE,
+                                             EIGHTH_RANK | H_FILE};
 
 typedef struct board_s {
     unsigned long white_pawns;
